@@ -1,0 +1,25 @@
+const MAX_STATUS_TEXT_LENGTH = 125;
+const CONTEXT_WARNING_THRESHOLD = 70;
+const CONTEXT_ERROR_THRESHOLD = 90;
+const MAX_CONTEXT_PERCENT = 100;
+const PATH_ICON = "󱃪";
+const BRANCH_ICON = "";
+const THINKING_ICON = "";
+const SHELL_ICON = "";
+const PI_ICON = "";
+const CONTEXT_ICONS = ["󰪞", "󰪟", "󰪠", "󰪡", "󰪢", "󰪣", "󰪤", "󰪥"] as const;
+const STALE_CONTEXT_ERROR_TEXT = "stale after session replacement or reload";
+
+export {
+	BRANCH_ICON,
+	CONTEXT_ERROR_THRESHOLD,
+	CONTEXT_ICONS,
+	CONTEXT_WARNING_THRESHOLD,
+	MAX_CONTEXT_PERCENT,
+	MAX_STATUS_TEXT_LENGTH,
+	PATH_ICON,
+	PI_ICON,
+	SHELL_ICON,
+	STALE_CONTEXT_ERROR_TEXT,
+	THINKING_ICON,
+};

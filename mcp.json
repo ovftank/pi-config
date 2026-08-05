@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "exa": {
+      "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_search_advanced_exa,web_fetch_exa",
+      "directTools": [
+        "web_search_exa",
+        "web_search_advanced_exa",
+        "web_fetch_exa"
+      ]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--no-usage-statistics",
+        "--autoConnect"
+      ],
+      "requestTimeoutMs": 120000,
+      "directTools": true
+    }
+  }
+}
