@@ -7,6 +7,20 @@
         "web_search_advanced_exa",
         "web_fetch_exa"
       ]
+    },
+    "mobbin": {
+      "url": "https://api.mobbin.com/mcp"
+    },
+    "mdn": {
+      "url": "https://mcp.mdn.mozilla.net/"
+    },
+    "firecrawl": {
+      "url": "https://mcp.firecrawl.dev/v2/mcp",
+      "auth": "bearer",
+      "bearerToken": "fill api key vao day nha"
+    },
+    "microsoft-learn": {
+      "url": "https://learn.microsoft.com/api/mcp"
     }
   }
 }

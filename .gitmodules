@@ -1,0 +1,4 @@
+[submodule "skills/chrome-cdp"]
+	path = skills/chrome-cdp
+	url = https://github.com/megait004/chrome-cdp.git
+	branch = main

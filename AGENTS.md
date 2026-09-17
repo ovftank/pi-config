@@ -31,3 +31,16 @@ Prefer installed fast tools when applicable:
 - `ast-grep` for syntax-aware search/rewrite instead of fragile regex.
 - For Python, use `uv run`, `uv add/remove`, or `uvx`; do not call `python`, `python3`, or `pip` directly.
 
+## GitHub research for coding
+
+Use the authenticated `gh` CLI as a read-only research tool before guessing at an implementation or root cause; do not use it to mutate repositories unless explicitly requested.
+
+- Find implementation examples with `gh search code "<symbol-or-pattern>" --repo OWNER/REPO --language <lang> --limit 20 --json path,repository,textMatches,url`. Narrow with `--filename`, `--extension`, `--owner`, or `--match file|path`. Code search uses GitHub's legacy API search engine, so verify important results in the source.
+- Find known bugs, regressions, and maintainer explanations with `gh search issues "<error-or-symptom>" --repo OWNER/REPO --state all --include-prs --limit 50 --json number,title,state,repository,url`, then inspect candidates with `gh issue view NUMBER --repo OWNER/REPO --comments`.
+- Find fixes and design decisions with `gh search prs "<error-or-symptom>" --repo OWNER/REPO --state all --limit 50 --json number,title,state,repository,url`, then use `gh pr view NUMBER --repo OWNER/REPO --comments` and `gh pr diff NUMBER --repo OWNER/REPO`.
+- Trace when/how behavior changed with `gh search commits "<keyword>" --repo OWNER/REPO --limit 50 --json sha,commit,repository,url`; inspect the relevant commit or files with `gh api`.
+- For details not exposed by `gh search`, use read-only REST/GraphQL calls such as `gh api repos/{owner}/{repo}/issues/NUMBER/comments --paginate` or `gh api repos/{owner}/{repo}/pulls/NUMBER/files --paginate`. Use `--json`, `--jq`, or `--template` to keep output small and machine-readable; use `--slurp` when combining pages.
+- Build a root-cause chain: reproduce the symptom → search the exact error and distinctive symbols → inspect duplicate issues and linked/merged PRs → inspect the fixing diff and nearby commits → compare the fix with the local call path and all callers. Treat a matching title as a lead, not proof.
+- Search qualifiers can be passed as query terms (`state:closed`, `is:merged`, `label:bug`, `path:...`). If a query contains a leading `-` qualifier, use `--` before the query (and PowerShell's `--%` when required).
+- `gh api` defaults to GET, but adding request fields can switch it to POST; keep research calls read-only and double-check the endpoint before using any write method.
+
