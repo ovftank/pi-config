@@ -1,6 +1,6 @@
 {
     "app.clear": "ctrl+c",
-    "app.clipboard.pasteImage": "alt+v",
+    "app.clipboard.pasteImage": ["ctrl+v", "alt+v"],
     "app.editor.external": [],
     "app.exit": [],
     "app.interrupt": "escape",
@@ -9,7 +9,9 @@
     "app.message.followUp": "ctrl+enter",
     "app.model.cycleBackward": [],
     "app.model.cycleForward": [],
-    "app.model.select": "ctrl+t",
+    "app.model.select": [
+        "ctrl+p"
+    ],
     "app.models.clearAll": [],
     "app.models.enableAll": [],
     "app.models.reorderDown": [],
@@ -29,7 +31,7 @@
     "app.suspend": [],
     "app.thinking.cycle": "shift+tab",
     "app.thinking.toggle": [],
-    "app.tools.expand": "ctrl+p",
+    "app.tools.expand": [],
     "app.tree.editLabel": [],
     "app.tree.filter.all": [],
     "app.tree.filter.cycleBackward": [],

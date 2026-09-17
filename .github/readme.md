@@ -37,5 +37,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubus
 | -------------- | --------------------------------------------------- |
 | MCP support    | Connect external tools and services through MCP.    |
 | Web search     | Search and fetch current information from the web.  |
-| Chrome control | Inspect and control Chrome through Chrome DevTools. |
-
+| Herdr config   | Installs a Dracula Herdr config tuned for Pi panes. |

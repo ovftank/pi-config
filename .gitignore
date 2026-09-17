@@ -1,0 +1,5 @@
+npm/
+sessions/
+mcp-cache.json
+auth.json
+models-store.json

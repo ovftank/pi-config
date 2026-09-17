@@ -261,10 +261,81 @@ function Invoke-DownloadFile {
   Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
 }
 
-function Refresh-ProcessPath {
+function Update-ProcessPath {
   $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
   $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
   $env:Path = "$machinePath;$userPath"
+}
+
+function Add-ToolPath {
+  param([string]$Dir)
+  $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+  if (($userPath -split ";" | Where-Object { $_ }) -contains $Dir) { return }
+  $newPath = if ($userPath) { "$userPath;$Dir" } else { $Dir }
+  [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
+  Update-ProcessPath
+}
+
+function Install-GitHubTool {
+  param([string]$Command, [string]$Repo, [string]$AssetPattern)
+  if (Get-Command $Command -ErrorAction SilentlyContinue) { return }
+  try {
+    Write-Step "Installing $Command"
+    $asset = (Invoke-RestMethod -UseBasicParsing "https://api.github.com/repos/$Repo/releases/latest").assets |
+      Where-Object { $_.name -like $AssetPattern } |
+      Select-Object -First 1
+    if (-not $asset) { throw "No release asset matching '$AssetPattern'." }
+
+    $toolsDir = Join-Path $env:USERPROFILE ".local\bin"
+    New-Item -ItemType Directory -Force -Path $toolsDir | Out-Null
+    $download = Join-Path ([IO.Path]::GetTempPath()) $asset.name
+    Invoke-DownloadFile $asset.browser_download_url $download
+    $destExe = Join-Path $toolsDir "$Command.exe"
+
+    if ($asset.name -like "*.exe") {
+      Copy-Item -LiteralPath $download -Destination $destExe -Force
+    } else {
+      $extractDir = Join-Path ([IO.Path]::GetTempPath()) "pi-tool-$Command-$PID"
+      New-Item -ItemType Directory -Force -Path $extractDir | Out-Null
+      try {
+        if ($asset.name -like "*.zip") {
+          Expand-Archive -LiteralPath $download -DestinationPath $extractDir -Force
+        } else {
+          tar -xzf $download -C $extractDir
+        }
+        $exe = Get-ChildItem -Path $extractDir -Filter "$Command.exe" -Recurse | Select-Object -First 1
+        if (-not $exe) { throw "$Command.exe not found inside $($asset.name)." }
+        Copy-Item -LiteralPath $exe.FullName -Destination $destExe -Force
+      } finally {
+        Remove-Item $extractDir -Recurse -Force -ErrorAction SilentlyContinue
+      }
+    }
+
+    Remove-Item $download -Force -ErrorAction SilentlyContinue
+    Add-ToolPath $toolsDir
+  } catch {
+    Write-Warning "Skipping $Command`: $($_.Exception.Message)"
+  }
+}
+
+function Install-DevTools {
+  Install-GitHubTool -Command "rg" -Repo "BurntSushi/ripgrep" -AssetPattern "*x86_64-pc-windows-msvc.zip"
+  Install-GitHubTool -Command "fd" -Repo "sharkdp/fd" -AssetPattern "*x86_64-pc-windows-msvc.zip"
+  Install-GitHubTool -Command "srcwalk" -Repo "sting8k/srcwalk" -AssetPattern "*x86_64-pc-windows-msvc.tar.gz"
+  Install-GitHubTool -Command "eza" -Repo "eza-community/eza" -AssetPattern "eza.exe_x86_64-pc-windows-gnu.zip"
+  Install-GitHubTool -Command "jq" -Repo "jqlang/jq" -AssetPattern "jq-windows-amd64.exe"
+  Install-GitHubTool -Command "gh" -Repo "cli/cli" -AssetPattern "*_windows_amd64.zip"
+  Install-GitHubTool -Command "ast-grep" -Repo "ast-grep/ast-grep" -AssetPattern "app-x86_64-pc-windows-msvc.zip"
+
+  if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
+    Write-Step "Installing uv"
+    try {
+      Invoke-Expression (Invoke-RestMethod -UseBasicParsing "https://astral.sh/uv/install.ps1") 6>$null
+      Update-ProcessPath
+    } catch {
+      Write-Warning "Skipping uv: $($_.Exception.Message)"
+    }
+  }
 }
 
 function Install-NodeStandalone {
@@ -299,7 +370,7 @@ function Install-GitAutomatically {
   Write-Host "  Installing Git for Windows with winget..."
   & winget.exe install --id Git.Git -e --source winget --accept-source-agreements --accept-package-agreements
   if ($LASTEXITCODE -ne 0) { throw "Git for Windows installation failed with exit code $LASTEXITCODE." }
-  Refresh-ProcessPath
+  Update-ProcessPath
 }
 
 function Invoke-PreflightChecks {
@@ -313,7 +384,7 @@ function Invoke-PreflightChecks {
     Write-Host "  Node.js 22.19.0+ and npm are required; installing standalone Node.js..."
     Install-NodeStandalone
   }
-  Refresh-ProcessPath
+  Update-ProcessPath
   $errors = @()
   if (-not (Get-Command git -ErrorAction SilentlyContinue)) { $errors += "Git is still unavailable after installation." }
   if (-not (Get-Command node -ErrorAction SilentlyContinue)) { $errors += "Node.js is still unavailable after installation." }
@@ -321,39 +392,65 @@ function Invoke-PreflightChecks {
   if ($errors.Count -gt 0) { throw ($errors -join [Environment]::NewLine) }
 }
 
-function Require-Command {
+function Assert-Command {
   param([string]$Name)
   if (-not (Get-Command $Name -ErrorAction SilentlyContinue)) { throw "Required command not found: $Name" }
 }
 
-try {
-  Set-PiTrueColor
-  Show-PiLogoAnimation
-  Write-InstallerTitle
-  Invoke-PreflightChecks
-  Write-Host "  This will remove the current Pi package and install the latest npm release." -ForegroundColor Yellow
-  Write-Host "  COLORTERM scope: $script:PiColorScope" -ForegroundColor DarkGray
+function Install-HerdrIfMissing {
+  if (Get-Command herdr -ErrorAction SilentlyContinue) { return }
+  Write-Step "Installing Herdr"
+  try {
+    Invoke-Expression (Invoke-RestMethod -UseBasicParsing "https://herdr.dev/install.ps1") 6>$null
+    Update-ProcessPath
+  } catch {
+    Write-Warning "Skipping Herdr install: $($_.Exception.Message)"
+  }
+}
 
-  Require-Command "git"
-  Require-Command "npm"
-  Require-Command "node"
+function Install-HerdrConfig {
+  $src = Join-Path $AgentPath "herdr\config.toml"
+  if (-not (Test-Path -LiteralPath $src)) { return }
+  $destDir = Join-Path $env:APPDATA "herdr"
+  New-Item -ItemType Directory -Force -Path $destDir | Out-Null
+  $dest = Join-Path $destDir "config.toml"
+  Copy-Item -LiteralPath $src -Destination $dest -Force
+  if (Get-Command herdr -ErrorAction SilentlyContinue) {
+    $prevConfigPath = $env:HERDR_CONFIG_PATH
+    try {
+      $env:HERDR_CONFIG_PATH = $dest
+      & herdr config check
+      if ($LASTEXITCODE -ne 0) { throw "Herdr config validation failed." }
+      & herdr server reload-config 2>$null
+    } finally {
+      $env:HERDR_CONFIG_PATH = $prevConfigPath
+    }
+  }
+}
 
+function Install-PiPackage {
   Write-Step "Removing the current global Pi package"
   Invoke-ExternalCommand "npm" @("uninstall", "-g", $PiPackage)
 
   Write-Step "Installing the latest global Pi package"
   Invoke-ExternalCommand "npm" @("install", "-g", "${PiPackage}@latest")
+}
 
+function Install-AgentConfig {
   Write-Step "Cloning pi-config into $AgentPath"
   if (Test-Path -LiteralPath $AgentPath) {
     Remove-Item -LiteralPath $AgentPath -Recurse -Force
   }
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $AgentPath) | Out-Null
   Invoke-ExternalCommand "git" @("clone", "--branch", "main", "--single-branch", $ConfigRepository, $AgentPath)
+}
 
+function Test-PiInstallation {
   Write-Step "Verifying the installation"
   Invoke-ExternalCommand "pi" @("--help")
+}
 
+function Write-InstallComplete {
   $reset = "${PiEsc}[0m"
   $green = "${PiEsc}[38;2;80;250;123m"
   if (Test-InstallerAnsiOutput) {
@@ -362,7 +459,37 @@ try {
     Write-Host "`n  Installation complete." -ForegroundColor Green
   }
   Write-Host "  Configuration: $AgentPath" -ForegroundColor Green
+  Write-Host "  Herdr config: $(Join-Path $env:APPDATA 'herdr\config.toml')" -ForegroundColor Green
   Write-Host "  COLORTERM: $env:COLORTERM" -ForegroundColor Green
+}
+
+function Invoke-Installer {
+  Set-PiTrueColor
+  Show-PiLogoAnimation
+  Write-InstallerTitle
+  Invoke-PreflightChecks
+  Write-Host "  This will remove the current Pi package and install the latest npm release." -ForegroundColor Yellow
+  Write-Host "  COLORTERM scope: $script:PiColorScope" -ForegroundColor DarkGray
+
+  Assert-Command "git"
+  Assert-Command "npm"
+  Assert-Command "node"
+
+  Write-Step "Installing dev tools"
+  Install-DevTools
+  Install-PiPackage
+  Install-HerdrIfMissing
+  Install-AgentConfig
+
+  Write-Step "Installing Herdr config"
+  Install-HerdrConfig
+
+  Test-PiInstallation
+  Write-InstallComplete
+}
+
+try {
+  Invoke-Installer
 } catch {
   Write-Error "Installation failed: $($_.Exception.Message)"
   exit 1
