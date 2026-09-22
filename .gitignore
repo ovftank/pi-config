@@ -1,5 +1,6 @@
 npm/
 sessions/
+node_modules/
 mcp-cache.json
 auth.json
-models-store.json
+models-store.jsonmcp.json

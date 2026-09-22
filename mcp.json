@@ -1,5 +1,13 @@
 {
   "mcpServers": {
+    "reqable": {
+      "command": "C:\\Program Files\\Reqable\\mcp-server.exe",
+      "args": ["--scope", "all"],
+      "directTools": [
+        "capture_live_filter",
+        "capture_live_get_by_id"
+      ]
+    },
     "exa": {
       "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_search_advanced_exa,web_fetch_exa",
       "directTools": [
@@ -17,7 +25,7 @@
     "firecrawl": {
       "url": "https://mcp.firecrawl.dev/v2/mcp",
       "auth": "bearer",
-      "bearerToken": "fill api key vao day nha"
+      "bearerToken": "co cai dau buoi"
     },
     "microsoft-learn": {
       "url": "https://learn.microsoft.com/api/mcp"

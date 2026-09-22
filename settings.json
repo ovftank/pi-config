@@ -8,12 +8,11 @@
   "defaultModel": "gpt-5.5",
   "defaultProjectTrust": "always",
   "defaultProvider": "openai-codex",
-  "defaultThinkingLevel": "max",
   "doubleEscapeAction": "none",
   "editorPaddingX": 1,
   "fullscreenScrollbar": "always",
   "hideThinkingBlock": true,
-  "lastChangelogVersion": "0.85.1",
+  "lastChangelogVersion": "0.87.1",
   "outputPad": 1,
   "packages": [
     {
@@ -23,7 +22,13 @@
     "npm:@ovftank/pi-compact"
   ],
   "shellPath": "C:\\Program Files\\Git\\bin\\bash.exe",
-  "defaultTools": ["read", "bash", "powershell", "edit", "write"],
+  "defaultTools": [
+    "read",
+    "bash",
+    "powershell",
+    "edit",
+    "write"
+  ],
   "theme": "dracula",
   "treeFilterMode": "no-tools",
   "tuiMode": "fullscreen"

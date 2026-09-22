@@ -1,6 +1,9 @@
 {
     "app.clear": "ctrl+c",
-    "app.clipboard.pasteImage": ["ctrl+v", "alt+v"],
+    "app.clipboard.pasteImage": [
+        "ctrl+v",
+        "alt+v"
+    ],
     "app.editor.external": [],
     "app.exit": [],
     "app.interrupt": "escape",
