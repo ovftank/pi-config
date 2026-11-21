@@ -6,6 +6,14 @@
 
 My [pi](https://pi.dev/) + [herdr](https://herdr.dev/) setup.
 
+**[Live Demo](https://ovftank.github.io/pi-config/)**
+
+<br />
+
+<a href="https://ovftank.github.io/pi-config/">
+  <img src=".github/preview.webp" alt="pi-config interactive preview" width="800" />
+</a>
+
 </div>
 
 <br />
@@ -72,4 +80,3 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubus
 | Rename a tab | double-click the tab      |
 | Reorder tabs | drag a tab                |
 | Switch tabs  | scroll over the tab strip |
-
