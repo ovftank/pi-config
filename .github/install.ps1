@@ -200,7 +200,7 @@ if (Get-Command herdr-app -ErrorAction SilentlyContinue) {
     Complete-Step 'herdr-app ready'
 }
 
-tmpDir = Join-Path ([IO.Path]::GetTempPath()) "pi-config-$PID"
+$tmpDir = Join-Path ([IO.Path]::GetTempPath()) "pi-config-$PID"
 try {
     Write-Step 'Cloning config...'
     $prevErrorAction = $ErrorActionPreference
@@ -235,7 +235,7 @@ try {
 
     if (Get-Command herdr-app -ErrorAction SilentlyContinue) {
         foreach ($mod in Get-ChildItem -LiteralPath (Join-Path $HerdrAppDir 'mods') -Directory) {
-            herdr-app check $mod.FullName 2>&1 | Where-Object { $_ -like 'check passed*' } | ForEach-Object { Complete-Step "  $_" }
+            herdr-app check $mod.FullName | Where-Object { $_ -like 'check passed*' } | ForEach-Object { Complete-Step "  $_" }
         }
     }
 
